@@ -13,21 +13,21 @@ void Memory::init()
 };
 
 // read byte at address
-byte Memory::operator[](u32 address) const
+byte Memory::operator[](word address) const
 {
     assert(address < MAX_MEMORY);
     return data[address];
 }
 
 // write byte at address
-byte& Memory::operator[](u32 address)
+byte& Memory::operator[](word address)
 {
     assert(address < MAX_MEMORY);
     return data[address];
 }
 
 // write two bytes (i.e. word)
-void Memory::write_word(word w, u32 address)
+void Memory::write_word(word w, word address)
 {
     data[address]       = w & 0xFF;
     data[address + 1]   = (w >> 8);
@@ -69,7 +69,7 @@ byte CPU::fetch_byte(s32& cycles)
     return value;
 }
 
-byte CPU::read_byte(s32& cycles, word address)
+byte CPU::read_byte(s32& cycles, word address) const
 {
     byte value = mem_ref[address];
     cycles--;
@@ -96,11 +96,23 @@ word CPU::fetch_word(s32& cycles)
     return value;
 }
 
-word CPU::read_word(s32& cycles, word address)
+word CPU::read_word(s32& cycles, word address) const
 {
     byte low = read_byte(cycles, address);
     byte high = read_byte(cycles, address + 0x1);
     return low | (high << 8);
+}
+
+void CPU::write_byte(s32& cycles, byte data, word address)
+{
+    mem_ref[address] = data;
+    cycles--;
+}
+
+void CPU::write_word(s32& cycles, word data, word address)
+{
+    cycles -= 2;
+    mem_ref.write_word(data, address);
 }
 
 /** @return number of cycles used */
@@ -218,88 +230,79 @@ s32 CPU::execute(s32 cycles)
         case INS_STA_ZP:
         {
             word address = addr_zero_page(cycles);
-            mem_ref[address] = A;
-            cycles--;
+            write_byte(cycles, A, address);
         } break;
         case INS_STA_ZPX:
         {
             word address = addr_zero_page_x(cycles);
-            mem_ref[address] = A;
-            cycles--;
+            write_byte(cycles, A, address);
         } break;
         case INS_STA_ABS:
         {
             word address = addr_abs(cycles);
-            mem_ref[address] = A;
-            cycles--;
+            write_byte(cycles, A, address);
         } break;
         case INS_STA_AX:
         {
             word address = addr_abs_x(cycles);
-            mem_ref[address] = A;
+            write_byte(cycles, A, address);
             cycles--;
         } break;
         case INS_STA_AY:
         {
             word address = addr_abs_y(cycles);
-            mem_ref[address] = A;
+            write_byte(cycles, A, address);
             cycles--;
         } break;
         case INS_STA_IX:
         {
             word address = addr_in_x(cycles);
-            mem_ref[address] = A;
-            cycles -= 2;
+            write_byte(cycles, A, address);
+            cycles--;
         } break;
         case INS_STA_IY:
         {
             word address = addr_in_y(cycles);
-            mem_ref[address] = A;
-            cycles -= 2;
+            write_byte(cycles, A, address);
+            cycles--;
         } break;
         // STX ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         case INS_STX_ZP:
         {
             word address = addr_zero_page(cycles);
-            mem_ref[address] = X;
-            cycles--;
+            write_byte(cycles, X, address);
         } break;
         case INS_STX_ZPY:
         {
             word address = addr_zero_page_y(cycles);
-            mem_ref[address] = X;
-            cycles--;
+            write_byte(cycles, X, address);
         } break;
         case INS_STX_ABS:
         {
             word address = addr_abs(cycles);
-            mem_ref[address] = X;
-            cycles--;
+            write_byte(cycles, X, address);
         } break;
         // JSY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         case INS_STY_ZP:
         {
             word address = addr_zero_page(cycles);
-            mem_ref[address] = Y;
-            cycles--;
+            write_byte(cycles, Y, address);
         } break;
         case INS_STY_ZPX:
         {
             word address = addr_zero_page_x(cycles);
-            mem_ref[address] = Y;
-            cycles--;
+            write_byte(cycles, Y, address);
         } break;
         case INS_STY_ABS:
         {
             word address = addr_abs(cycles);
-            mem_ref[address] = Y;
-            cycles--;
+            write_byte(cycles, Y, address);
         } break;
         // JSR ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         case INS_JSR:
         {
             word sub_routine_addr = fetch_word(cycles);
-            write_word_cpu(cycles, PC - 1, SP);
+            write_word(cycles, PC - 1, SP);
             SP += 2;
             PC = sub_routine_addr;
             cycles--;

@@ -34,9 +34,9 @@ namespace emulator6502 {
         byte data[MAX_MEMORY];
 
         void init();
-        byte operator[](u32) const;
-        byte& operator[](u32);
-        void write_word(word, u32);
+        byte operator[](word) const;
+        byte& operator[](word);
+        void write_word(word, word);
     };
 
     struct CPU 
@@ -61,9 +61,11 @@ namespace emulator6502 {
         void set_memory(Memory&);
         void reset();
         byte fetch_byte(s32&);
-        byte read_byte(s32&, word);
+        byte read_byte(s32&, word) const;
         word fetch_word(s32&);
-        word read_word(s32&, word);
+        word read_word(s32&, word) const;
+        void write_byte(s32&, byte, word);
+        void write_word(s32&, word, word);
         s32 execute(s32);
 
         /**
@@ -121,14 +123,7 @@ namespace emulator6502 {
             INS_JSR          = 0x20;
 
     private:
-        // handles cycles count seperatly from memory
-        void write_word_cpu(s32& cycles, word w, u32 address)
-        {
-            cycles -= 2;
-            mem_ref.write_word(w, address);
-        }
-
-                // https://en.cppreference.com/w/cpp/numeric/byteswap
+        // https://en.cppreference.com/w/cpp/numeric/byteswap
         template<std::integral T>
         constexpr T byteswap(T value) noexcept
         {

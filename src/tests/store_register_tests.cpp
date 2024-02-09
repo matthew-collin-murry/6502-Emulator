@@ -84,7 +84,7 @@ void StoreRegisterTests::test_store_register_abs_(byte opcode, byte CPU::*store,
     cpu.*offset = 0x1;
     s32 cycles_used = cpu.execute(4);
     EXPECT_EQ(mem[0xFF11], cpu.*store);
-    EXPECT_EQ(cycles_used, 4);
+    EXPECT_EQ(cycles_used, 5);
     flags_are_default();
 }
 
@@ -156,7 +156,6 @@ TEST_F(StoreRegisterTests, STX_ABS)
 {
     test_store_register_abs(CPU::INS_STX_ABS, &CPU::X);
 }
-
 
 // // ~~~~~~~~~~~~~~~~~~~~~~~~~~ STY Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
