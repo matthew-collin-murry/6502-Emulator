@@ -36,6 +36,7 @@ add_executable(
   basic_tests
   ./src/tests/load_register_tests__extra.cpp
   ./src/tests/store_register_tests.cpp
+  ./src/tests/jump_return_tests.cpp
   ./src/m6502.cpp
   ./src/m6502.h
 )

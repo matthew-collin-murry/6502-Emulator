@@ -59,13 +59,16 @@ namespace emulator6502 {
 
         CPU(Memory&);
         void set_memory(Memory&);
-        void reset();
+        void reset(word = 0xFFFC);
         byte fetch_byte(s32&);
         byte read_byte(s32&, word) const;
         word fetch_word(s32&);
         word read_word(s32&, word) const;
         void write_byte(s32&, byte, word);
         void write_word(s32&, word, word);
+        void push_pc_sp(s32&);
+        word sp_to_address() const;
+        word pop_word_from_stack(s32&);
         s32 execute(s32);
 
         /**
@@ -119,39 +122,29 @@ namespace emulator6502 {
             INS_STY_ZP       = 0x84,
             INS_STY_ZPX      = 0x94,
             INS_STY_ABS      = 0x8C,
-            // JSR
-            INS_JSR          = 0x20;
+        // ~~~~~~~~~~~~~~~~ Jummps & Calls ~~~~~~~~~~~~~~~~
+            INS_JSR          = 0x20,
+            INS_RTS          = 0x60;
 
     private:
-        // https://en.cppreference.com/w/cpp/numeric/byteswap
-        template<std::integral T>
-        constexpr T byteswap(T value) noexcept
-        {
-            static_assert(std::has_unique_object_representations_v<T>, 
-                        "T may not have padding bits");
-            auto value_representation = std::bit_cast<std::array<std::byte, sizeof(T)>>(value);
-            std::ranges::reverse(value_representation);
-            return std::bit_cast<T>(value_representation);
-        }
-
         // addressing modes
         // http://www.emulator101.com/6502-addressing-modes.html
 
         // addressing mode functions
-        word addr_zero_page(s32&);
-        word addr_zero_page_x(s32&);
-        word addr_zero_page_y(s32&);
-        word addr_abs(s32&);
-        word addr_abs_x(s32&);
-        word addr_abs_y(s32&);
-        word addr_in_x(s32&);
-        word addr_in_y(s32&);
+        word address_mode_zero_page_and_immediate(s32&);
+        word address_mode_zero_page_x_offset(s32&);
+        word address_mode_zero_page_y_offset(s32&);
+        word address_mode_absolute(s32&);
+        word address_mode_absolute_x_offset(s32&);
+        word address_mode_absolute_y_offset(s32&);
+        word address_mode_indirest_x_offset(s32&);
+        word address_mode_indirest_y_offset(s32&);
 
         // extra cycle for corssing page boundary
-        word addr_abs_x_page(s32&);
-        word addr_abs_y_page(s32&);
-        word addr_in_x_page(s32&);
-        word addr_in_y_page(s32&);
+        word address_mode_abosolute_x_offset_with_page_cycle(s32&);
+        word address_mode_abosolute_y_offset_with_page_cycle(s32&);
+        word address_mode_indirect_x_offset_with_page_cycle(s32&);
+        word address_mode_indirect_y_offset_with_page_cycle(s32&);
 
         // flags for LDA, LDX, LDY (same flag logic for all)
         void _LD__set_flags(byte reg)

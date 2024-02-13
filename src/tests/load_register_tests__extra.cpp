@@ -12,9 +12,7 @@ public:
 
     LoadRegisterTests()
         : cpu(CPU(mem)), default_cpu_state(CPU(mem))
-    {
-        default_cpu_state.reset();
-    }
+    {}
 
     virtual void SetUp()
     {
@@ -386,16 +384,4 @@ TEST_F(LoadRegisterTests, LDY_ABS)
 TEST_F(LoadRegisterTests, LDY_ABSX)
 {
     test_load_register_ax(CPU::INS_LDY_AX, &CPU::Y);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~ JSR Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TEST_F(LoadRegisterTests, JSR)
-{
-    mem[0xFFFC] = CPU::INS_JSR;
-    mem.write_word(0x4242, 0xFFFD);
-    mem[0x4242] = CPU::INS_LDA_IM;
-    mem[0x4243] = 0x84;
-    cpu.execute(8);
-    EXPECT_EQ(cpu.A, 0x84);
 }

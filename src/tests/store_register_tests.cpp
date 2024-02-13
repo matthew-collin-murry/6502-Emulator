@@ -12,9 +12,7 @@ public:
 
     StoreRegisterTests()
         : cpu(CPU(mem)), default_cpu_state(CPU(mem))
-    {
-        default_cpu_state.reset();
-    }
+    {}
 
     virtual void SetUp()
     {
