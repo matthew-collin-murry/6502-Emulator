@@ -17,15 +17,15 @@ namespace emulator6502 {
     class UnknownInstructionException : public std::exception
     {
     public:
-        UnknownInstructionException(const char* msg) : msg(msg)
+        explicit UnknownInstructionException(const char* msg) : _msg(msg)
         {}
 
         char* what()
         {
-            return const_cast<char*>(msg);
+            return const_cast<char*>(_msg);
         }
     private:
-        const char* msg;
+        const char* _msg;
     };
 
     struct Memory
@@ -39,6 +39,18 @@ namespace emulator6502 {
         void write_word(word, word);
     };
 
+    struct StatusFlags
+    {
+        byte C : 1;
+        byte Z : 1;
+        byte I : 1;
+        byte D : 1;
+        byte B : 1;
+        byte _ : 1; // unused
+        byte V : 1;
+        byte N : 1;
+    };
+
     struct CPU 
     {
         word PC; // program counter
@@ -46,18 +58,15 @@ namespace emulator6502 {
 
         byte A, X, Y; // registers
 
-        // status flags (bit fields)
-        byte C : 1;
-        byte Z : 1;
-        byte I : 1;
-        byte D : 1;
-        byte B : 1;
-        byte V : 1;
-        byte N : 1;
+        union // processor status
+        {
+            byte PS;
+            StatusFlags SF;
+        };
 
         Memory& mem_ref;
 
-        CPU(Memory&);
+        explicit CPU(Memory&);
         void set_memory(Memory&);
         void reset(word = 0xFFFC);
         byte fetch_byte(s32&);
@@ -81,6 +90,7 @@ namespace emulator6502 {
          * AY  : Absolute y-indexed
          * IX  : Indirect x-indexed
          * IY  : Indirect y-indexed
+         * I   : Indirect
         */
         // opcodes
         static constexpr byte 
@@ -124,7 +134,9 @@ namespace emulator6502 {
             INS_STY_ABS      = 0x8C,
         // ~~~~~~~~~~~~~~~~ Jummps & Calls ~~~~~~~~~~~~~~~~
             INS_JSR          = 0x20,
-            INS_RTS          = 0x60;
+            INS_RTS          = 0x60,
+            INS_JMP_ABS      = 0x4C,
+            INS_JMP_I        = 0x6C;
 
     private:
         // addressing modes
@@ -150,9 +162,9 @@ namespace emulator6502 {
         void _LD__set_flags(byte reg)
         {
             // set zero flag if reg is zero
-            Z = (reg == 0);
+            SF.Z = (reg == 0);
             // set negative flag if bit 7 of reg is set
-            N = CHECK_BIT(reg, 7);
+            SF.N = CHECK_BIT(reg, 7);
         }
     };
 }

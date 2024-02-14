@@ -54,7 +54,7 @@ void CPU::reset(word reset_vector)
     SP = 0xFF;
 
     // clear flags
-    C = Z = I = D = B = V = N = 0;
+    SF.C = SF.Z = SF.I = SF.D = SF.B = SF.V = SF.N = 0;
 
     // clear registers
     A = X = Y = 0;
@@ -328,6 +328,15 @@ s32 CPU::execute(s32 cycles)
             word return_addr = pop_word_from_stack(cycles);
             PC = return_addr + 1;
             cycles -= 2;
+        } break;
+        case INS_JMP_ABS:
+        {
+            PC = address_mode_absolute(cycles);
+        } break;
+        case INS_JMP_I:
+        {
+            word address = fetch_word(cycles);
+            PC = read_word(cycles, address);
         } break;
         default: 
             throw UnknownInstructionException(
