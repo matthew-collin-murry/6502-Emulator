@@ -21,7 +21,7 @@ public:
 
     void flags_are_default()
     {
-        EXPECT_EQ(cpu.SP, default_cpu_state.SP);
+        EXPECT_EQ(cpu.PS, default_cpu_state.PS);
     }
 
     void test_store_register_zp(byte opcode, byte CPU::*reg);

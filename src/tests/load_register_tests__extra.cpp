@@ -34,11 +34,11 @@ public:
 
 void LoadRegisterTests::check_LD__unmodified_flags()
 {
-    EXPECT_EQ(cpu.SF.C, default_cpu_state.SF.C);
-    EXPECT_EQ(cpu.SF.I, default_cpu_state.SF.I);
-    EXPECT_EQ(cpu.SF.D, default_cpu_state.SF.D);
-    EXPECT_EQ(cpu.SF.B, default_cpu_state.SF.B);
-    EXPECT_EQ(cpu.SF.V, default_cpu_state.SF.V);
+    EXPECT_EQ(cpu.Flag.C, default_cpu_state.Flag.C);
+    EXPECT_EQ(cpu.Flag.I, default_cpu_state.Flag.I);
+    EXPECT_EQ(cpu.Flag.D, default_cpu_state.Flag.D);
+    EXPECT_EQ(cpu.Flag.B, default_cpu_state.Flag.B);
+    EXPECT_EQ(cpu.Flag.V, default_cpu_state.Flag.V);
 }
 
 void LoadRegisterTests::test_load_register_im(byte opcode, byte CPU::*reg)
@@ -205,7 +205,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0004;
     cpu.execute(2);
-    EXPECT_FALSE(cpu.SF.Z);
+    EXPECT_FALSE(cpu.Flag.Z);
 
     cpu.reset();
 
@@ -213,7 +213,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0;
     cpu.execute(2);
-    EXPECT_TRUE(cpu.SF.Z);
+    EXPECT_TRUE(cpu.Flag.Z);
 
     cpu.reset();
 
@@ -221,7 +221,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x80;
     cpu.execute(2);
-    EXPECT_TRUE(cpu.SF.N);
+    EXPECT_TRUE(cpu.Flag.N);
 
     cpu.reset();
 
@@ -229,7 +229,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0;
     cpu.execute(2);
-    EXPECT_FALSE(cpu.SF.N);
+    EXPECT_FALSE(cpu.Flag.N);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~

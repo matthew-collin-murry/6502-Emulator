@@ -37,6 +37,7 @@ add_executable(
   ./src/tests/load_register_tests__extra.cpp
   ./src/tests/store_register_tests.cpp
   ./src/tests/jump_return_tests.cpp
+  ./src/tests/stack_operations_tests.cpp
   ./src/m6502.cpp
   ./src/m6502.h
 )
@@ -45,13 +46,13 @@ target_compile_options(basic_tests PUBLIC -Og)
 
 # target_precompile_headers(
 #   emulator
-#   PRIVATE
+#   PUBLIC
 #     src/project_header.h
 # )
 
 target_precompile_headers(
   basic_tests
-  PRIVATE
+  PUBLIC
     src/project_header.h
 )
 
