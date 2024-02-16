@@ -34,11 +34,11 @@ public:
 
 void LoadRegisterTests::check_LD__unmodified_flags()
 {
-    EXPECT_EQ(cpu.Flag.C, default_cpu_state.Flag.C);
-    EXPECT_EQ(cpu.Flag.I, default_cpu_state.Flag.I);
-    EXPECT_EQ(cpu.Flag.D, default_cpu_state.Flag.D);
-    EXPECT_EQ(cpu.Flag.B, default_cpu_state.Flag.B);
-    EXPECT_EQ(cpu.Flag.V, default_cpu_state.Flag.V);
+    EXPECT_EQ(cpu.flag.C, default_cpu_state.flag.C);
+    EXPECT_EQ(cpu.flag.I, default_cpu_state.flag.I);
+    EXPECT_EQ(cpu.flag.D, default_cpu_state.flag.D);
+    EXPECT_EQ(cpu.flag.B, default_cpu_state.flag.B);
+    EXPECT_EQ(cpu.flag.V, default_cpu_state.flag.V);
 }
 
 void LoadRegisterTests::test_load_register_im(byte opcode, byte CPU::*reg)
@@ -190,8 +190,7 @@ void LoadRegisterTests::test_load_register_iy(byte opcode, byte CPU::*reg)
     // page cross check
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x02;
-    mem[0x0001] = 0x00;
-    mem[0x0002] = 0x80;
+    mem.write_word(0x8000, 0x0001);
     mem[0x8000] = 0x42;
     cpu.Y = 0xFF;
     cycles_used = cpu.execute(6);
@@ -205,7 +204,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0004;
     cpu.execute(2);
-    EXPECT_FALSE(cpu.Flag.Z);
+    EXPECT_FALSE(cpu.flag.Z);
 
     cpu.reset();
 
@@ -213,7 +212,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0;
     cpu.execute(2);
-    EXPECT_TRUE(cpu.Flag.Z);
+    EXPECT_TRUE(cpu.flag.Z);
 
     cpu.reset();
 
@@ -221,7 +220,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x80;
     cpu.execute(2);
-    EXPECT_TRUE(cpu.Flag.N);
+    EXPECT_TRUE(cpu.flag.N);
 
     cpu.reset();
 
@@ -229,7 +228,7 @@ void LoadRegisterTests::test_load_register_flags(byte opcode)
     mem[0xFFFC] = opcode;
     mem[0xFFFD] = 0x0;
     cpu.execute(2);
-    EXPECT_FALSE(cpu.Flag.N);
+    EXPECT_FALSE(cpu.flag.N);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~

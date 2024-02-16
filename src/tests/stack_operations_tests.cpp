@@ -41,8 +41,8 @@ TEST_F(StackOperationsTests, TSX_ZERO_FLAG)
     auto cycles_used = cpu.execute(2);
     EXPECT_EQ(cycles_used, 2);
     EXPECT_EQ(cpu.X, cpu.SP);
-    EXPECT_TRUE(cpu.Flag.Z);
-    EXPECT_FALSE(cpu.Flag.N);
+    EXPECT_TRUE(cpu.flag.Z);
+    EXPECT_FALSE(cpu.flag.N);
 }
 
 TEST_F(StackOperationsTests, TSX_NEG_FLAG)
@@ -52,8 +52,8 @@ TEST_F(StackOperationsTests, TSX_NEG_FLAG)
     auto cycles_used = cpu.execute(2);
     EXPECT_EQ(cycles_used, 2);
     EXPECT_EQ(cpu.X, cpu.SP);
-    EXPECT_TRUE(cpu.Flag.N);
-    EXPECT_FALSE(cpu.Flag.Z);
+    EXPECT_TRUE(cpu.flag.N);
+    EXPECT_FALSE(cpu.flag.Z);
 }
 
 TEST_F(StackOperationsTests, TXS)
@@ -79,8 +79,48 @@ TEST_F(StackOperationsTests, PHA)
 TEST_F(StackOperationsTests, PHP)
 {
     mem[0xFFFC] = CPU::INS_PHP;
+    cpu.PS = 0x4C;
     auto cycles_used = cpu.execute(3);
     EXPECT_EQ(cycles_used, 3);
-    EXPECT_EQ(cpu.X, cpu.SP);
-    flags_are_default();
+    EXPECT_EQ(mem[cpu.sp_to_address() + 1], cpu.PS);
+}
+
+TEST_F(StackOperationsTests, PLA)
+{
+    mem[0xFFFC] = CPU::INS_PLA;
+    mem[0x01FF] = 0x42;
+    auto cycles_used = cpu.execute(4);
+    EXPECT_EQ(cycles_used, 4);
+    EXPECT_EQ(cpu.A, 0x42);
+}
+
+TEST_F(StackOperationsTests, PLA_ZERO_FLAG)
+{
+    mem[0xFFFC] = CPU::INS_PLA;
+    mem[0x01FF] = 0x0;
+    auto cycles_used = cpu.execute(4);
+    EXPECT_EQ(cycles_used, 4);
+    EXPECT_EQ(cpu.A, 0x0);
+    EXPECT_TRUE(cpu.flag.Z);
+    EXPECT_FALSE(cpu.flag.N);
+}
+
+TEST_F(StackOperationsTests, PLA_NEG_FLAG)
+{
+    mem[0xFFFC] = CPU::INS_PLA;
+    mem[0x01FF] = 0xFF;
+    auto cycles_used = cpu.execute(4);
+    EXPECT_EQ(cycles_used, 4);
+    EXPECT_EQ(cpu.A, 0xFF);
+    EXPECT_TRUE(cpu.flag.N);
+    EXPECT_FALSE(cpu.flag.Z);
+}
+
+TEST_F(StackOperationsTests, PLP)
+{
+    mem[0xFFFC] = CPU::INS_PLP;
+    mem[0x01FF] = 0xF4;
+    auto cycles_used = cpu.execute(4);
+    EXPECT_EQ(cycles_used, 4);
+    EXPECT_EQ(cpu.PS, 0xF4);
 }

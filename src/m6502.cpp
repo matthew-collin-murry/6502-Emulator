@@ -54,7 +54,8 @@ void CPU::reset(word reset_vector)
     SP = 0xFF;
 
     // clear flags
-    Flag.C = Flag.Z = Flag.I = Flag.D = Flag.B = Flag.V = Flag.N = 0;
+    flag.C = flag.Z = flag.I = flag.D = flag.B = flag.V = flag.N = 0;
+    PS = 0x00;
 
     // clear registers
     A = X = Y = 0;
@@ -133,6 +134,14 @@ word CPU::pop_word_from_stack()
     return value;
 }
 
+byte CPU::pop_byte_from_stack()
+{
+    byte value = read_byte(sp_to_address());
+    SP++;
+    cycles--;
+    return value;
+}
+
 void CPU::push_byte_to_stack(byte value)
 {
     mem_ref[sp_to_address()] = value;
@@ -151,6 +160,32 @@ s32 CPU::execute(s32 cycle_count)
     {
         reg = read_byte(address);
         zero_and_negative_flag_set(reg);
+    };
+
+    // weird name because and is a keyword
+    auto _and_ =
+        [this]
+        (word address)
+    {
+        A &= read_byte(address);
+        zero_and_negative_flag_set(A);
+    };
+
+    auto eor =
+        [this]
+        (word address)
+    {
+        A ^= read_byte(address);
+        zero_and_negative_flag_set(A);
+    };
+
+    // weird name because or is a keyword
+    auto _or_ =
+        [this]
+        (word address)
+    {
+        A |= read_byte(address);
+        zero_and_negative_flag_set(A);
     };
 
     const s32 start_cycles = cycles;
@@ -192,7 +227,7 @@ s32 CPU::execute(s32 cycle_count)
         } break;
         case INS_LDA_IX:
         {
-            word address = address_mode_indirest_x_offset();
+            word address = address_mode_indirect_x_offset();
             load_register(address, A);
             cycles--;
         } break;
@@ -283,13 +318,13 @@ s32 CPU::execute(s32 cycle_count)
         } break;
         case INS_STA_IX:
         {
-            word address = address_mode_indirest_x_offset();
+            word address = address_mode_indirect_x_offset();
             write_byte(A, address);
             cycles--;
         } break;
         case INS_STA_IY:
         {
-            word address = address_mode_indirest_y_offset();
+            word address = address_mode_indirect_y_offset();
             write_byte(A, address);
             cycles--;
         } break;
@@ -364,6 +399,148 @@ s32 CPU::execute(s32 cycle_count)
             push_byte_to_stack(A);
             cycles--;
         } break;
+        case INS_PHP:
+        {
+            push_byte_to_stack(PS);
+            cycles--;
+        } break;
+        case INS_PLA:
+        {
+            A = pop_byte_from_stack();
+            zero_and_negative_flag_set(A);
+            cycles--;
+        } break;
+        case INS_PLP:
+        {  
+            PS = pop_byte_from_stack();
+            cycles--;
+        } break;
+        // Logical Operations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        case INS_AND_IM:
+        {
+            A &= address_mode_zero_page_and_immediate();
+            zero_and_negative_flag_set(A);
+        } break;
+        case INS_AND_ZP:
+        {
+            word address = address_mode_zero_page_and_immediate();
+            _and_(address);
+        } break;
+        case INS_AND_ZPX:
+        {   
+            word address = address_mode_zero_page_x_offset();
+            _and_(address);
+        } break;
+        case INS_AND_ABS:
+        {
+            word address = address_mode_absolute();
+            _and_(address);
+        } break;
+        case INS_AND_AX:
+        {
+            word address = address_mode_abosolute_x_offset_with_page_cycle();
+            _and_(address);
+        } break;
+        case INS_AND_AY:
+        {
+            word address = address_mode_abosolute_y_offset_with_page_cycle();
+            _and_(address);
+        } break;
+        case INS_AND_IX:
+        {
+            word address = address_mode_indirect_x_offset();
+            _and_(address);
+            cycles--;
+        } break;
+        case INS_AND_IY:
+        {
+            word address = address_mode_indirect_y_offset_with_page_cycle();
+            _and_(address);
+        } break;
+    // EOR ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        case INS_EOR_IM:
+        {
+            A ^= address_mode_zero_page_and_immediate();
+            zero_and_negative_flag_set(A);
+        } break;
+        case INS_EOR_ZP:
+        {
+            word address = address_mode_zero_page_and_immediate();
+            eor(address);
+        } break;
+        case INS_EOR_ZPX:
+        {   
+            word address = address_mode_zero_page_x_offset();
+            eor(address);
+        } break;
+        case INS_EOR_ABS:
+        {
+            word address = address_mode_absolute();
+            eor(address);
+        } break;
+        case INS_EOR_AX:
+        {
+            word address = address_mode_abosolute_x_offset_with_page_cycle();
+            eor(address);
+        } break;
+        case INS_EOR_AY:
+        {
+            word address = address_mode_abosolute_y_offset_with_page_cycle();
+            eor(address);
+        } break;
+        case INS_EOR_IX:
+        {
+            word address = address_mode_indirect_x_offset();
+            eor(address);
+            cycles--;
+        } break;
+        case INS_EOR_IY:
+        {
+            word address = address_mode_indirect_y_offset_with_page_cycle();
+            eor(address);
+        } break;
+    // OR ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        case INS_ORA_IM:
+        {
+            A |= address_mode_zero_page_and_immediate();
+            zero_and_negative_flag_set(A);
+        } break;
+        case INS_ORA_ZP:
+        {
+            word address = address_mode_zero_page_and_immediate();
+            _or_(address);
+        } break;
+        case INS_ORA_ZPX:
+        {   
+            word address = address_mode_zero_page_x_offset();
+            _or_(address);
+        } break;
+        case INS_ORA_ABS:
+        {
+            word address = address_mode_absolute();
+            _or_(address);
+        } break;
+        case INS_ORA_AX:
+        {
+            word address = address_mode_abosolute_x_offset_with_page_cycle();
+            _or_(address);
+        } break;
+        case INS_ORA_AY:
+        {
+            word address = address_mode_abosolute_y_offset_with_page_cycle();
+            _or_(address);
+        } break;
+        case INS_ORA_IX:
+        {
+            word address = address_mode_indirect_x_offset();
+            _or_(address);
+            cycles--;
+        } break;
+        case INS_ORA_IY:
+        {
+            word address = address_mode_indirect_y_offset_with_page_cycle();
+            _or_(address);
+        } break;
         default: 
             throw UnknownInstructionException(
                 std::format("Unknown instruction: {}", instruction).c_str()
@@ -417,7 +594,7 @@ word CPU::address_mode_absolute_y_offset()
     return mem_addr;
 }
 
-word CPU::address_mode_indirest_x_offset()
+word CPU::address_mode_indirect_x_offset()
 {
     byte zp_addr = fetch_byte();
     zp_addr += X;
@@ -426,7 +603,7 @@ word CPU::address_mode_indirest_x_offset()
     return mem_addr;
 }
 
-word CPU::address_mode_indirest_y_offset()
+word CPU::address_mode_indirect_y_offset()
 {
     byte zp_addr = fetch_byte();
     zp_addr += Y;

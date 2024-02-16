@@ -33,16 +33,18 @@ add_compile_options(-pedantic -Wall -Wextra)
 # )
 
 add_executable(
-  basic_tests
+  tests
   ./src/tests/load_register_tests__extra.cpp
   ./src/tests/store_register_tests.cpp
   ./src/tests/jump_return_tests.cpp
   ./src/tests/stack_operations_tests.cpp
+  ./src/tests/logical_tests.cpp
+  ./src/tests/logical_tests.h
   ./src/m6502.cpp
   ./src/m6502.h
 )
 
-target_compile_options(basic_tests PUBLIC -Og)
+# target_compile_options(tests PUBLIC -Og)
 
 # target_precompile_headers(
 #   emulator
@@ -51,11 +53,11 @@ target_compile_options(basic_tests PUBLIC -Og)
 # )
 
 target_precompile_headers(
-  basic_tests
+  tests
   PUBLIC
     src/project_header.h
 )
 
 target_link_libraries(
-  basic_tests GTest::gtest_main
+  tests GTest::gtest_main
 )
